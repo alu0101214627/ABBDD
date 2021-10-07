@@ -1,6 +1,6 @@
 Presentación Supuesto Proyecto de Bases de Datos
 
-	Se nos plantea un supuesto en el que debemos diseñar una base de datos que recoja a las poblaciones con dificultades para acceder al agua potable y al saneamiento, y los datos de estas.
+Se nos plantea un supuesto en el que debemos diseñar una base de datos que recoja a las poblaciones con dificultades para acceder al agua potable y al saneamiento, y los datos de estas.
 
 
 
