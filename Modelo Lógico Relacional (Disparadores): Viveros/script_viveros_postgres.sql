@@ -68,7 +68,8 @@ CREATE TABLE IF NOT EXISTS viveros.cliente_club (
   apellido1 VARCHAR(25),
   apellido2 VARCHAR(25),
   email VARCHAR(45),
-  PRIMARY KEY (DNI));
+  PRIMARY KEY (DNI)
+);
 
 
 CREATE TABLE IF NOT EXISTS viveros.cliente_club_pedido_empleado (
@@ -157,11 +158,33 @@ BEGIN
 END;
 $email$ LANGUAGE 'plpgsql';
 
+CREATE OR REPLACE FUNCTION control_stock()
+    RETURNS trigger AS $stock$
+DECLARE
+    stock_producto INT;
+BEGIN
+    SELECT producto.stock INTO stock_producto FROM producto WHERE codigo = NEW.codigo_producto;
+    --RAISE '%', stock_producto;
+    IF stock_producto - NEW.cantidad >= 0 THEN
+        UPDATE producto SET stock = stock_producto - NEW.cantidad WHERE codigo = NEW.codigo_producto;
+    ELSE
+        RAISE 'No se dispone de esa cantidad en el almacén para el producto solicitado';
+    END IF;
+    RETURN NEW;
+END;
+$stock$ LANGUAGE 'plpgsql';
+
 CREATE TRIGGER trigger_crear_email_before_insert
   BEFORE INSERT
   ON cliente_club
   FOR EACH ROW
   EXECUTE PROCEDURE crear_email('ull.edu.es');
+
+CREATE TRIGGER trigger_control_stock
+  AFTER INSERT
+  ON viveros.cliente_club_pedido_empleado
+  FOR EACH ROW
+  EXECUTE PROCEDURE control_stock();
 
 INSERT INTO viveros.vivero (latitud, longitud, localidad) values (28.5225, -16.337944 , 'San Cristóbal de La Laguna');
 INSERT INTO viveros.vivero (latitud, longitud, localidad) values (28.3556667, -16.370583 , 'Candelaria');
@@ -183,7 +206,7 @@ INSERT INTO viveros.producto (codigo, stock, precio) values (0005, 3, 6.31);
 INSERT INTO viveros.cliente_club (DNI, credito_mensual, bonificacion, nombre, apellido1, apellido2, email) values ('89465132Z', 34.65, 4.35, 'Jorge', 'Ronco', 'Moratilla', NULL);
 INSERT INTO viveros.cliente_club (DNI, credito_mensual, bonificacion, nombre, apellido1, email) values ('89465133Y', 35.45, 5.25, 'Irene', 'Hernandez', NULL);
 INSERT INTO viveros.cliente_club (DNI, credito_mensual, bonificacion, apellido1, apellido2, email) values ('89465134X', 36.35, 6.55, 'Sanz', 'Herranz', NULL);
-INSERT INTO viveros.cliente_club (DNI, credito_mensual, bonificacion, email) values ('89465135W', 37.25, 7.15, NULL);
+INSERT INTO viveros.cliente_club (DNI, credito_mensual, bonificacion, nombre, email) values ('89465135W', 37.25, 7.15, 'Aritz',NULL);
 INSERT INTO viveros.cliente_club (DNI, credito_mensual, bonificacion, nombre, apellido2, email) values ('89465136V', 39.15, 9.15, 'Cristina', 'Batista', NULL);
 
 INSERT INTO viveros.cliente_club_pedido_empleado (DNI_cliente_club, DNI_empleado, codigo_producto, fecha, cantidad) values ('89465132Z', '89645151C', 0004, '2021-06-21', 3);
